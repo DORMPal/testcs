@@ -36,7 +36,8 @@ namespace Todolist
             services.AddDbContext<TodolistContext>(
                 opt => opt.UseNpgsql(connectionString)
                 );
-            services.AddScoped<IRepository, TodoListRepository>();
+            //services.AddScoped<IRepository, TodoListRepository>();
+            services.AddScoped<IRepository, MockRepository>();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Todolist", Version = "v1"}); });
         }
 
