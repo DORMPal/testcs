@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Todolist.Dto;
 using Todolist.Models;
 
@@ -8,33 +10,41 @@ namespace Todolist.Repositories
 {
     public class MockRepository : IRepository
     {
-        private readonly List<TodolistModel> _data;
+        private string _filePath = "data.json";
+        private List<TodolistModel> _data;
 
         public MockRepository()
         {
-            // 👇 mock ข้อมูลที่ใช้โชว์
-            _data = new List<TodolistModel>
-            {
-                new TodolistModel
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Mock Task 1",
-                    Description = "This is a mocked task",
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = null
-                },
-                new TodolistModel
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Mock Task 2",
-                    Description = "Another mocked task",
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = null
-                }
-            };
+            LoadData();
         }
 
-        public List<TodolistModel> GetAll() => _data;
+        private void LoadData()
+        {
+            if (File.Exists(_filePath))
+            {
+                var json = File.ReadAllText(_filePath);
+                Console.WriteLine(json);
+                _data = JsonSerializer.Deserialize<List<TodolistModel>>(json) ?? new List<TodolistModel>();
+            }
+            else
+            {
+                Console.WriteLine("file doesn't exist");
+                _data = new List<TodolistModel>();
+                SaveData(); // Create empty file
+            }
+        }
+
+        private void SaveData()
+        {
+            var json = JsonSerializer.Serialize(_data, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_filePath, json);
+        }
+
+        public List<TodolistModel> GetAll()
+        {
+            //LoadData();
+            return _data;
+        }
 
         public TodolistModel GetById(Guid id) => _data.FirstOrDefault(x => x.Id == id);
 
@@ -43,6 +53,7 @@ namespace Todolist.Repositories
             data.Id = Guid.NewGuid();
             data.CreatedAt = DateTime.Now;
             _data.Add(data);
+            SaveData();
             return null;
         }
 
@@ -53,6 +64,7 @@ namespace Todolist.Repositories
             existing.Title = data.Title;
             existing.Description = data.Description;
             existing.UpdatedAt = DateTime.Now;
+            SaveData();
             return null;
         }
 
@@ -61,6 +73,7 @@ namespace Todolist.Repositories
             var toDelete = _data.FirstOrDefault(x => x.Id == id);
             if (toDelete == null) return new Error { Message = "Not found" };
             _data.Remove(toDelete);
+            SaveData();
             return null;
         }
     }

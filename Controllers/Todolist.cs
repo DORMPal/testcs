@@ -42,9 +42,9 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] CreateOrUpdateTodoListDto data)
         {
-            if (data.Title != "")
+            if (string.IsNullOrWhiteSpace(data.Title))
             {
-                return BadRequest("something wrong");
+                return BadRequest("Title is required.");
             }
             
             var newData = new TodolistModel
@@ -63,7 +63,8 @@ namespace WebApplication1.Controllers
                 return StatusCode(statusCode: StatusCodes.Status500InternalServerError);
             }
 
-            return Created("api/todolists", _repository.Create(newData));
+            //return Created("api/todolists", _repository.Create(newData));
+            return Created("api/todolists", newData);
         }
 
         [HttpPut("{id}")]
